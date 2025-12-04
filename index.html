@@ -547,6 +547,9 @@
         // Кэш загруженных постеров
         const posterCache = {};
         
+        // Определяем, мобильное ли устройство
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
         // Загрузка постеров только для видимых фильмов
         async function loadPostersForMovies(moviesToLoad) {
             const promises = moviesToLoad.map(async (movie) => {
@@ -558,7 +561,12 @@
                 }
 
                 try {
-                    const response = await fetch(`https://www.omdbapi.com/?i=${movie.imdbId}&apikey=${OMDB_API_KEY}`);
+                    // Используем CORS прокси для мобильных устройств
+                    const apiUrl = isMobile 
+                        ? `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://www.omdbapi.com/?i=${movie.imdbId}&apikey=${OMDB_API_KEY}`)}`
+                        : `https://www.omdbapi.com/?i=${movie.imdbId}&apikey=${OMDB_API_KEY}`;
+                    
+                    const response = await fetch(apiUrl);
                     const data = await response.json();
                     
                     if (data.Poster && data.Poster !== 'N/A') {
