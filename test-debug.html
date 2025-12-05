@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест отладки</title>
+</head>
+<body>
+    <h1>Тест загрузки файлов</h1>
+    <div id="results"></div>
+
+    <script src="movies-data.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        const results = document.getElementById('results');
+        
+        // Тест 1: movies-data.js
+        results.innerHTML += `<p>moviesDatabase загружен: ${typeof moviesDatabase !== 'undefined' ? '✅ ДА' : '❌ НЕТ'}</p>`;
+        if (typeof moviesDatabase !== 'undefined') {
+            results.innerHTML += `<p>Количество фильмов: ${moviesDatabase.length}</p>`;
+        }
+        
+        // Тест 2: auth.js
+        results.innerHTML += `<p>checkAuth функция: ${typeof checkAuth !== 'undefined' ? '✅ ДА' : '❌ НЕТ'}</p>`;
+        results.innerHTML += `<p>showAuthModal функция: ${typeof showAuthModal !== 'undefined' ? '✅ ДА' : '❌ НЕТ'}</p>`;
+        
+        // Тест 3: authSection
+        setTimeout(() => {
+            const authSection = document.getElementById('authSection');
+            results.innerHTML += `<p>authSection найден: ${authSection ? '✅ ДА' : '❌ НЕТ'}</p>`;
+            
+            const authModal = document.getElementById('authModal');
+            results.innerHTML += `<p>authModal создан: ${authModal ? '✅ ДА' : '❌ НЕТ'}</p>`;
+        }, 1000);
+        
+        // Тест 4: Кнопка входа
+        results.innerHTML += `<div id="authSection" style="margin-top: 20px;"></div>`;
+        results.innerHTML += `<button onclick="showAuthModal()" style="margin-top: 10px; padding: 10px 20px;">Тест: Открыть окно входа</button>`;
+    </script>
+</body>
+</html>
