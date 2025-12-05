@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест трейлеров</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #e0e0e0;
+        }
+        h1 { color: #fff; }
+        .test-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .success { border-left: 4px solid #4caf50; }
+        .warning { border-left: 4px solid #ff9800; }
+        .error { border-left: 4px solid #f44336; }
+        button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #1565c0; }
+        .video-container {
+            margin-top: 20px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .log {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-item {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #666;
+            padding-left: 10px;
+        }
+        .log-success { border-left-color: #4caf50; color: #4caf50; }
+        .log-warning { border-left-color: #ff9800; color: #ff9800; }
+        .log-error { border-left-color: #f44336; color: #f44336; }
+        .log-info { border-left-color: #2196f3; color: #2196f3; }
+    </style>
+</head>
+<body>
+    <h1>🎬 Тест русских трейлеров</h1>
+    
+    <div class="test-box">
+        <h3>Выберите фильм для проверки:</h3>
+        <button onclick="testTrailer('tt15398776', 'Оппенгеймер')">Оппенгеймер (2023)</button>
+        <button onclick="testTrailer('tt0111161', 'Побег из Шоушенка')">Побег из Шоушенка (1994)</button>
+        <button onclick="testTrailer('tt0468569', 'Тёмный рыцарь')">Тёмный рыцарь (2008)</button>
+        <button onclick="testTrailer('tt1375666', 'Начало')">Начало (2010)</button>
+        <button onclick="testTrailer('tt0133093', 'Матрица')">Матрица (1999)</button>
+        <button onclick="testTrailer('tt4154796', 'Мстители: Финал')">Мстители: Финал (2019)</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script src="trailers-database.js"></script>
+    <script>
+        const resultsDiv = document.getElementById('results');
+        let logMessages = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logMessages.push({ time: timestamp, message, type });
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logHtml = logMessages.map(log => 
+                `<div class="log-item log-${log.type}">[${log.time}] ${log.message}</div>`
+            ).join('');
+            
+            const logDiv = document.querySelector('.log');
+            if (logDiv) {
+                logDiv.innerHTML = logHtml;
+                logDiv.scrollTop = logDiv.scrollHeight;
+            }
+        }
+
+        async function testTrailer(imdbId, title) {
+            logMessages = [];
+            resultsDiv.innerHTML = `
+                <div class="test-box">
+                    <h3>🔍 Тестирование: ${title}</h3>
+                    <p><strong>IMDb ID:</strong> <code>${imdbId}</code></p>
+                    <div class="log"></div>
+                </div>
+            `;
+
+            addLog(`Начинаем поиск трейлера для "${title}"`, 'info');
+            addLog(`IMDb ID: ${imdbId}`, 'info');
+
+            // Проверка 1: Локальная база данных
+            addLog('Шаг 1: Проверка локальной базы данных...', 'info');
+            
+            if (typeof getTrailerByImdbId === 'undefined') {
+                addLog('❌ ОШИБКА: Функция getTrailerByImdbId не найдена!', 'error');
+                addLog('Файл trailers-database.js не загрузился', 'error');
+                return;
+            }
+
+            const localTrailer = getTrailerByImdbId(imdbId);
+            
+            if (localTrailer) {
+                addLog('✅ УСПЕХ: Трейлер найден в локальной базе!', 'success');
+                addLog(`URL: ${localTrailer}`, 'success');
+                
+                // Извлекаем YouTube ID
+                const youtubeId = localTrailer.split('/embed/')[1];
+                addLog(`YouTube ID: ${youtubeId}`, 'info');
+                
+                // Показываем трейлер
+                resultsDiv.innerHTML += `
+                    <div class="test-box success">
+                        <h3>✅ Результат: РУССКИЙ трейлер найден!</h3>
+                        <p><strong>Источник:</strong> Локальная база данных (trailers-database.js)</p>
+                        <p><strong>YouTube ID:</strong> <code>${youtubeId}</code></p>
+                        <p><strong>Ссылка:</strong> <a href="https://www.youtube.com/watch?v=${youtubeId}" target="_blank" style="color: #4caf50;">Открыть на YouTube</a></p>
+                        <div class="video-container">
+                            <iframe src="${localTrailer}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                        </div>
+                    </div>
+                `;
+                
+                addLog('Трейлер загружен и отображен', 'success');
+            } else {
+                addLog('⚠️ Трейлер НЕ найден в локальной базе', 'warning');
+                addLog(`IMDb ID "${imdbId}" отсутствует в базе данных`, 'warning');
+                
+                resultsDiv.innerHTML += `
+                    <div class="test-box warning">
+                        <h3>⚠️ Трейлер не найден в локальной базе</h3>
+                        <p>IMDb ID <code>${imdbId}</code> отсутствует в файле <code>trailers-database.js</code></p>
+                        <p><strong>Решение:</strong> Добавьте этот фильм в базу данных с русским трейлером</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Автоматический тест при загрузке
+        window.addEventListener('load', () => {
+            const testBox = document.createElement('div');
+            testBox.className = 'test-box';
+            testBox.innerHTML = `
+                <h3>📊 Статистика базы данных</h3>
+                <p><strong>Статус загрузки:</strong> ${typeof trailersDatabase !== 'undefined' ? '✅ Загружена' : '❌ Не загружена'}</p>
+                <p><strong>Количество трейлеров:</strong> ${typeof trailersDatabase !== 'undefined' ? Object.keys(trailersDatabase).length : 0}</p>
+                <p><strong>Функция getTrailerByImdbId:</strong> ${typeof getTrailerByImdbId !== 'undefined' ? '✅ Доступна' : '❌ Недоступна'}</p>
+            `;
+            document.body.insertBefore(testBox, resultsDiv);
+        });
+    </script>
+</body>
+</html>
